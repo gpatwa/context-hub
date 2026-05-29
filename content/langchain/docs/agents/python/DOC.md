@@ -1,3 +1,14 @@
+---
+name: agents
+description: "LangChain Python SDK v1.x guidance for building agents on top of LangGraph, with correct sub-package imports for langchain_openai, langchain_anthropic, and other providers"
+metadata:
+  languages: "python"
+  versions: "1.0.0"
+  revision: 1
+  updated-on: "2026-03-19"
+  source: community
+  tags: "langchain,langgraph,python,agents,llm,ai,openai,anthropic"
+---
 
 # LangChain Python SDK (v1.x)
 
