@@ -3,9 +3,9 @@ name: astro
 description: "Astro 6 guide for building fast, content-focused websites with islands architecture, file-based routing, content collections, and zero client JS by default"
 metadata:
   languages: "javascript"
-  versions: "6.0.7"
-  revision: 1
-  updated-on: "2026-03-20"
+  versions: "6.4.2"
+  revision: 2
+  updated-on: "2026-05-29"
   source: community
   tags: "astro,javascript,ssg,ssr,islands,content,vite"
 ---
@@ -31,7 +31,7 @@ npm run dev
 To add Astro to an existing project:
 
 ```bash
-npm install astro@6.0.7
+npm install astro@6.4.2
 ```
 
 Add scripts to `package.json`:
@@ -298,6 +298,68 @@ export default defineConfig({
 
 Then use `.jsx`/`.tsx` components in Astro pages with `client:*` directives for interactivity.
 
+## View Transitions
+
+Add SPA-like cross-page transitions with `<ClientRouter />` from `astro:transitions`. Place it in the `<head>` of a shared layout to enable transitions across the whole site.
+
+```astro
+---
+import { ClientRouter } from 'astro:transitions';
+---
+
+<html lang="en">
+  <head>
+    <title>My Site</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
+Use `transition:name` to pair elements across navigations and `transition:animate` to pick built-in animations.
+
+```astro
+<img src={hero} alt="" transition:name={`hero-${slug}`} transition:animate="slide" />
+```
+
+Listen for transition lifecycle events in client scripts:
+
+```js
+document.addEventListener('astro:before-preparation', (event) => { /* before fetch */ });
+document.addEventListener('astro:after-swap', () => { /* after DOM swap */ });
+document.addEventListener('astro:page-load', () => { /* every page navigation */ });
+```
+
+## Server Endpoints And Middleware
+
+Server endpoints (in `src/pages/api/`) export HTTP method handlers. The handler receives an `APIContext` with `request`, `params`, `cookies`, `redirect`, and `locals`.
+
+```js
+// src/pages/api/login.js
+export async function POST({ request, cookies, redirect }) {
+  const data = await request.formData();
+  const token = await signIn(data.get('email'), data.get('password'));
+  cookies.set('session', token, { httpOnly: true, path: '/' });
+  return redirect('/dashboard', 303);
+}
+```
+
+Middleware runs on every request. Define it in `src/middleware.js`:
+
+```js
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const token = context.cookies.get('session')?.value;
+  context.locals.user = token ? await getUser(token) : null;
+  return next();
+});
+```
+
+Read `Astro.locals.user` (or `context.locals.user` in endpoints) downstream.
+
 ## Styling
 
 ### Scoped Styles
@@ -477,10 +539,11 @@ For SSR builds, use the appropriate adapter and follow its deployment guide.
 
 ## Version-Sensitive Notes
 
-- This guide targets `astro@6.0.7`.
+- This guide targets `astro@6.4.2`.
 - Astro 5+ moved content collection config from `src/content/config.ts` to `src/content.config.js` (project root level for content layer).
 - Astro 5+ uses `render()` from `astro:content` instead of calling `.render()` on entries.
 - `hybrid` output mode was removed in Astro 5. Use `output: 'server'` with `export const prerender = true` on individual pages instead.
+- View transitions are available via the `<ClientRouter />` component from `astro:transitions` (renamed from `<ViewTransitions />` in Astro 5).
 
 ## Official Sources
 
